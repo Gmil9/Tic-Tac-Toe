@@ -32,6 +32,7 @@ class Board(val size: Int): TheBoard{
     override fun checkBoard(board: Array<Array<Int>>): Int {
 
         for(i in 0..2){
+            //checks for 3 in a row in each row
             if(board[i][0] == board[i][1] && board[i][0] == board[i][2] && board[i][0] != 0){
                 if(board[i][0] == 1){
                     return 1
@@ -39,6 +40,7 @@ class Board(val size: Int): TheBoard{
                     return -1
                 }
             }
+            //checks for 3 in a row in each column
             if(board[0][i] == board[1][i] && board[0][i] == board[2][i] && board[0][i] != 0){
                 if(board[i][0] == 1){
                     return 1
@@ -46,8 +48,23 @@ class Board(val size: Int): TheBoard{
                     return -1
                 }
             }
+            //checks for 3 in a row diagonal TopLeft to BottomRight
+            if(board[0][0] == board[1][1] && board[1][1] == board[2][2] && board[0][0] != 0){
+                if(board[0][0] == 1){
+                    return 1
+                }else{
+                    return -1
+                }
+            }
+            //checks for 3 in a row diagonal TopRight to BottomLeft
+            if(board[0][2] == board[1][1] && board[1][1] == board[2][0] && board[0][2] != 0){
+                if(board[0][2] == 1){
+                    return 1
+                }else{
+                    return -1
+                }
+            }
         }
-
 
         return 0
     }
@@ -87,10 +104,15 @@ fun main(args: Array<String>) {
         val c = entry.nextInt()
         println("$c\n")
 
-        if(currentTurn){
-            board[r][c] = 1
+        if(board[r][c] != 0){
+            print("Square already taken, Choose again\n\n")
+            currentTurn = !currentTurn
         }else{
-            board[r][c] = -1
+            if(currentTurn){
+                board[r][c] = 1
+            }else{
+                board[r][c] = -1
+            }
         }
 
         b.showBoard(board)
