@@ -30,6 +30,25 @@ class Board(val size: Int): TheBoard{
 
     //returns 1 if X wins, and -1 if O wins
     override fun checkBoard(board: Array<Array<Int>>): Int {
+
+        for(i in 0..2){
+            if(board[i][0] == board[i][1] && board[i][0] == board[i][2] && board[i][0] != 0){
+                if(board[i][0] == 1){
+                    return 1
+                }else{
+                    return -1
+                }
+            }
+            if(board[0][i] == board[1][i] && board[0][i] == board[2][i] && board[0][i] != 0){
+                if(board[i][0] == 1){
+                    return 1
+                }else{
+                    return -1
+                }
+            }
+        }
+
+
         return 0
     }
 
@@ -81,8 +100,10 @@ fun main(args: Array<String>) {
 
     if(winner == 1){
         //Player 1 wins "X"
+        print("Player 1 Wins!")
     }else{
         //Player 2 wins "O"
+        print("Player 2 Wins!")
     }
 
 
