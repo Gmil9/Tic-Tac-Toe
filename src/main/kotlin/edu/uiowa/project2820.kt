@@ -1,9 +1,21 @@
 package edu.uiowa
 import java.util.*
 
-// this is where you will begin the first version of your project
-// but you will also need to connect this project with your github.uiowa.edu
-// repository, as explained in the discussion section 9th November
+import javafx.application.Application
+import javafx.application.Application.launch
+import javafx.event.ActionEvent
+import javafx.event.EventHandler
+import javafx.geometry.Insets
+import javafx.scene.Scene
+import javafx.scene.control.*
+import javafx.scene.layout.GridPane
+import javafx.scene.layout.HBox
+import javafx.scene.layout.VBox
+import javafx.stage.Stage
+
+var current_stage: Stage? = null
+var grid = GridPane()
+var boardSize: Int = 3
 
 interface TheBoard{
     fun createBoard(): Array<Array<Int>>
@@ -21,6 +33,9 @@ class Board(val size: Int): TheBoard{
         for(i in 1..size){
             var cols = arrayOf<Int>()
             for(j in 1..size){
+                val b = Button("")
+                b.setPrefSize((boardSize * 99).toDouble(), (boardSize * 99).toDouble())
+                grid.add(b, i, j)
                 cols += 0
             }
             rows += cols
@@ -85,48 +100,70 @@ class Board(val size: Int): TheBoard{
     }
 }
 
+class MyForm: Application() {
+
+    override fun start(primaryStage: Stage) {
+        current_stage = primaryStage
+
+        val b = Board(boardSize)
+        var board = b.createBoard()
+
+        grid.gridLinesVisibleProperty().set(true)
+
+
+        primaryStage.run {
+            scene = Scene(grid, (boardSize * 100).toDouble(),(boardSize * 100).toDouble())
+            show()
+        }
+    }
+}
+
+
 fun main(args: Array<String>) {
     // you can do some testing here, though unit testing needs to be
     // in the src/test/java directory
+    val entry = Scanner(System.`in`)
+    print("Choose a board size between 3 and 6")
+    boardSize = entry.nextInt()
+    launch(MyForm::class.java)
 
-    val b = Board(3)
-    var board = b.createBoard()
-
-    var currentTurn = true
-    var winner = 0
-
-    while(winner == 0){
-        val entry = Scanner(System.`in`)
-        print("Enter a row")
-        val r = entry.nextInt()
-        println("$r\n")
-        print("Enter a column")
-        val c = entry.nextInt()
-        println("$c\n")
-
-        if(board[r][c] != 0){
-            print("Square already taken, Choose again\n\n")
-            currentTurn = !currentTurn
-        }else{
-            if(currentTurn){
-                board[r][c] = 1
-            }else{
-                board[r][c] = -1
-            }
-        }
-
-        b.showBoard(board)
-        winner = b.checkBoard(board)
-        currentTurn = !currentTurn
-    }
-
-    if(winner == 1){
-        //Player 1 wins "X"
-        print("Player 1 Wins!")
-    }else{
-        //Player 2 wins "O"
-        print("Player 2 Wins!")
-    }
-    print("git test")
+//    val b = Board(3)
+//    var board = b.createBoard()
+//
+//    var currentTurn = true
+//    var winner = 0
+//
+//    while(winner == 0){
+//        val entry = Scanner(System.`in`)
+//        print("Enter a row")
+//        val r = entry.nextInt()
+//        println("$r\n")
+//        print("Enter a column")
+//        val c = entry.nextInt()
+//        println("$c\n")
+//
+//        if(board[r][c] != 0){
+//            print("Square already taken, Choose again\n\n")
+//            currentTurn = !currentTurn
+//        }else{
+//            if(currentTurn){
+//                board[r][c] = 1
+//            }else{
+//                board[r][c] = -1
+//            }
+//        }
+//
+//        b.showBoard(board)
+//        winner = b.checkBoard(board)
+//        currentTurn = !currentTurn
+//    }
+//
+//    if(winner == 1){
+//        //Player 1 wins "X"
+//        print("Player 1 Wins!")
+//    }else{
+//        //Player 2 wins "O"
+//        print("Player 2 Wins!")
+//    }
 
 }
