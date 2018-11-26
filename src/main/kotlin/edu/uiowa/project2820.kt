@@ -31,7 +31,7 @@ interface TheBoard{
     fun createBoard(): Array<Array<Int>>
     fun createBoardButtons(): Array<Array<Button>>
     fun checkBoard(board: Array<Array<Int>>)
-    fun takeTurn(j: Int, i: Int)
+    fun takeTurn(j: Int, i: Int, bs :Button)
     fun showBoard()
 }
 
@@ -59,11 +59,11 @@ class Board(val size: Int): TheBoard{
         for(i in 0..size-1){
             var bcols = arrayOf<Button>()
             for(j in 0..size-1){
-                val b = Button("X")
+                val b = Button("")
                 b.setPrefSize((size * 99).toDouble(), (size * 99).toDouble())
                 grid.add(b, i, j)
 
-                b.setOnAction { e -> takeTurn(i, j) }
+                b.setOnAction { e -> takeTurn(i, j, b) }
 
                 bcols += b
                 count++
@@ -73,15 +73,17 @@ class Board(val size: Int): TheBoard{
         return buttons
     }
 
-    override fun takeTurn(j: Int, i: Int) {
+    override fun takeTurn(j: Int, i: Int, bs :Button) {
         if(board[i][j] != 0){
             print("Square already taken, Choose again\n\n")
             currentTurn = !currentTurn
         }else{
             if(currentTurn){
                 board[i][j] = 1
+                bs.text = "X"
             }else{
                 board[i][j] = -1
+                bs.text = "O"
             }
         }
 
@@ -107,14 +109,10 @@ class Board(val size: Int): TheBoard{
         for(i in 0..size-1){
             var count = 0
             for(j in 0..size-2){
-                print("Board[i][j]: " + board[i][j] + " and Board[i][j+1]: " + board[i][j+1])
-                println()
                 if(board[i][j] == board[i][j+1] && board[i][j] != 0){
                     count++
                 }
             }
-            print("Count: " + count)
-            println()
             if(count == size - 1){
                 winner = if(currentTurn) 1 else -1
             }
@@ -123,19 +121,14 @@ class Board(val size: Int): TheBoard{
         for(i in 0..size-1){
             var count = 0
             for(j in 0..size-2){
-                print("Board[j][i]: " + board[j][i] + " and Board[j][i+1]: " + board[j+1][i])
-                println()
                 if(board[j][i] == board[j+1][i] && board[j][i] != 0){
                     count++
                 }
             }
-            print("Count: " + count)
-            println()
             if(count == size - 1){
                 winner = if(currentTurn) 1 else -1
             }
         }
-
     }
 
     override fun showBoard() {
