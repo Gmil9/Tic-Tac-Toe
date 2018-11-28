@@ -28,7 +28,8 @@ var winner = 0
 var b = Board(boardSize)
 var board = arrayOf<Array<Int>>()       //background for tracking winner
 var buttons = arrayOf<Array<Button>>() //visual representation of buttons
-var sizeInput: TextField ?= null
+val groupset1: Array<ToggleButton?> = arrayOfNulls(4) // for toggle buttons
+val tgroup1 = ToggleGroup()
 
 interface TheBoard{
     fun createBoard(): Array<Array<Int>>
@@ -61,6 +62,7 @@ class Board(val size: Int): TheBoard{
             var bcols = arrayOf<Button>()
             for(j in 0..size-1){
                 val b = Button("")
+                b.style = "-fx-font-size: 48px; -fx-text-fill: #b22222"
                 b.setPrefSize((size * 99).toDouble(), (size * 99).toDouble())
                 grid.add(b, i, j)
                 b.setOnAction { e -> takeTurn(i, j, b) } //takeTurn is called whenever a square is clicked
@@ -172,7 +174,7 @@ class Board(val size: Int): TheBoard{
 //this creates a pop up message when called
 fun message(s: String){
     val alert = Alert(AlertType.INFORMATION)
-    alert.title = "Oops"
+    alert.title = "Message"
     alert.headerText = null
     alert.contentText = s
     alert.showAndWait()
@@ -181,9 +183,14 @@ fun message(s: String){
 //resets the board for a new game
 fun newGame(){
     winner = 0
+    grid.children.removeAll()
     currentTurn = true
-    val t = sizeInput as TextField
-    boardSize = t.text.toInt()
+    when(tgroup1.selectedToggle){
+        groupset1[0] -> boardSize = 3
+        groupset1[1] -> boardSize = 4
+        groupset1[2] -> boardSize = 5
+        groupset1[3] -> boardSize = 6
+    }
     b = Board(boardSize)
     board = b.createBoard()
     buttons = b.createGrid()
@@ -194,50 +201,90 @@ class MyForm: Application() {
 
     override fun start(primaryStage: Stage) {
 
-        var gameScene = Scene(grid, (boardSize * 100).toDouble(),(boardSize * 100).toDouble())
+        var gameScene = Scene(grid, (boardSize * 210).toDouble(),(boardSize * 210)
+                .toDouble())
 
         val vbox = VBox()
-        vbox.setPrefSize(300.0,200.0)
+        vbox.setPrefSize(500.0,200.0)
 
         val vbox1 = VBox()
-        vbox1.setPrefSize(300.0,200.0)
+        vbox1.setPrefSize(300.0,150.0)
 
         menuScene = Scene(vbox, 300.0, 200.0)
-        var chooseScene = Scene(vbox1, 300.0, 200.0)
+        var chooseScene = Scene(vbox1, 300.0, 150.0)
 
         val hbox1 = HBox()
-        hbox1.setPadding(Insets(15.0, 12.0, 15.0, 12.0));
-        hbox1.setSpacing(15.0);   // to make it look nicer
+        hbox1.setPadding(Insets(20.0, 20.0, 15.0, 65.0));
+        hbox1.setSpacing(15.0);
         vbox.children.add(hbox1)
+
         val header = Label("Tic Tac Toe")
+        header.style = "-fx-font-size: 30px"
         hbox1.children.add(header)
+
         val hbox2 = HBox()
-        hbox2.setPadding(Insets(15.0, 12.0, 15.0, 12.0));
+        hbox2.setPadding(Insets(15.0, 12.0, 15.0, 58.0));
         hbox2.setSpacing(15.0);
         vbox.children.add(hbox2)
+
         val startb = Button("Start Game")
-        startb.setOnAction { e -> primaryStage.scene = chooseScene }
+        startb.setOnAction { e -> primaryStage.scene = chooseScene; newGame() }
         hbox2.children.add(startb)
+
         val exitb = Button("Exit Game")
         exitb.setOnAction { e -> primaryStage.close()}
         hbox2.children.add(exitb)
 
         val hbox3 = HBox()
-        //hbox3.setPadding(Insets(15.0, 12.0, 15.0, 12.0));
-        //hbox3.setSpacing(15.0);
-        vbox1.children.add(hbox3)
-        val hbox4 = HBox()
-        //hbox4.setPadding(Insets(15.0, 12.0, 15.0, 12.0));
-        //hbox4.setSpacing(15.0);
-        vbox1.children.add(hbox4)
-        val labelSize = Label("Choose board size: ")
+        hbox3.setPadding(Insets(5.0, 12.0, 5.0, 30.0));
+        hbox3.setSpacing(15.0);
+        vbox.children.add(hbox3)
+
+        val labelSize = Label("Choose board size between 3 and 6: ")
         hbox3.children.add(labelSize)
-        val t = TextField()
-        sizeInput = t
-        hbox3.children.add(t)
-        val startb2 = Button("Start")
-        startb2.setOnAction { e -> primaryStage.scene = gameScene; newGame() }
-        hbox4.children.add(startb2)
+
+        val hbox3b = HBox()
+        hbox3b.setPadding(Insets(5.0, 20.0, 15.0, 70.0));
+        hbox3b.setSpacing(15.0);
+        vbox.children.add(hbox3b)
+
+        val r1 = ToggleButton("3")
+        r1.toggleGroup = tgroup1
+        hbox3b.children.add(r1)
+        groupset1[0] = r1
+        val r2 = ToggleButton("4")
+        r2.toggleGroup = tgroup1
+        hbox3b.children.add(r2)
+        groupset1[1] = r2
+        val r3 = ToggleButton("5")
+        r3.toggleGroup = tgroup1
+        hbox3b.children.add(r3)
+        groupset1[2] = r3
+        val r4 = ToggleButton("6")
+        r4.toggleGroup = tgroup1
+        hbox3b.children.add(r4)
+        groupset1[3] = r4
+
+        val hbox4 = HBox()
+        hbox4.setPadding(Insets(15.0, 20.0, 15.0, 40.0));
+        hbox4.setSpacing(15.0);
+        vbox1.children.add(hbox4)
+
+        val labelPlayers = Label("How many players?")
+        labelPlayers.style = "-fx-font-size: 24px"
+        hbox4.children.add(labelPlayers)
+
+        val hbox5 = HBox()
+        hbox5.setPadding(Insets(20.0, 30.0, 15.0, 70.0));
+        hbox5.setSpacing(15.0);
+        vbox1.children.add(hbox5)
+
+        val startb2 = Button("1 Player")
+        startb2.setOnAction { e -> primaryStage.scene = gameScene }
+        hbox5.children.add(startb2)
+        val startb3 = Button("2 Players")
+        startb3.setOnAction { e -> primaryStage.scene = gameScene }
+        hbox5.children.add(startb3)
 
         currentstage = primaryStage
         primaryStage.scene = menuScene
