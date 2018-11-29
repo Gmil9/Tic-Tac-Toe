@@ -24,8 +24,10 @@ var menuScene: Scene? = null
 var grid = GridPane()
 var boardSize: Int = 3
 var currentTurn = true
+var players = 1
 var winner = 0
 var b = Board(boardSize)
+val ai = AI()
 var board = arrayOf<Array<Int>>()       //background for tracking winner
 var buttons = arrayOf<Array<Button>>() //visual representation of buttons
 val groupset1: Array<ToggleButton?> = arrayOfNulls(4) // for toggle buttons
@@ -64,7 +66,7 @@ class Board(val size: Int): TheBoard{
                 val b = Button("")
                 b.style = "-fx-font-size: 48px; -fx-text-fill: #b22222"
                 b.setPrefSize((size * 99).toDouble(), (size * 99).toDouble())
-                grid.add(b, i, j)
+                grid.add(b, j, i)
                 b.setOnAction { e -> takeTurn(i, j, b) } //takeTurn is called whenever a square is clicked
                 bcols += b
                 count++
@@ -76,30 +78,25 @@ class Board(val size: Int): TheBoard{
 
     //this is activated on each button click
     override fun takeTurn(j: Int, i: Int, bs: Button) {
-        if(board[i][j] != 0){
-            message("Square already taken, Choose again\n\n")
+        if(board[j][i] != 0){
+            message("Square already taken, Choose again")
             currentTurn = !currentTurn
         }else{
             if(currentTurn){
-                board[i][j] = 1
+                board[j][i] = 1
                 bs.text = "X"
             }else{
-                board[i][j] = -1
+                board[j][i] = -1
                 bs.text = "O"
             }
         }
 
         b.checkBoard(board)
-        if(winner == 1){
-            //Player 1 wins "X"
-            message("Player 1 Wins!")
-            currentstage?.scene = menuScene
-        }else if(winner == -1){
-            //Player 2 wins "O"
-            message("Player 2 Wins!")
-            currentstage?.scene = menuScene
+        checkWinner()
+
+        if(players == 1 && currentTurn == false && winner == 0){
+            ai.chooseSquare()
         }
-        currentTurn = !currentTurn
     }
 
     //returns 1 if X wins, and -1 if O wins
@@ -171,6 +168,64 @@ class Board(val size: Int): TheBoard{
     }
 }
 
+class AI{
+
+    var open_squares: MutableList<Pair<Int, Int>> = mutableListOf()
+    var open_squaresList: MutableList<Int> = mutableListOf()
+
+    fun createMap(){
+        open_squares.clear()
+        for(i in 0..boardSize-1){
+            for(j in 0..boardSize-1){
+                open_squares.add(Pair(i, j))
+            }
+        }
+    }
+
+    fun currentMap(){
+        open_squaresList.clear()
+        var count = 0
+        for(i in 0..boardSize-1){
+            for(j in 0..boardSize-1){
+                if(board[i][j] == 0){
+                    open_squaresList.add(count)
+                }
+                count++
+            }
+        }
+    }
+
+    fun chooseSquare(){
+        ai.currentMap()
+        val tempRandom = open_squaresList.random()
+        val tempPair = open_squares.get(tempRandom)
+        val tempNode = grid.children.get(tempRandom) as Button
+
+        tempNode.text = "O"
+        board[tempPair.first][tempPair.second] = -1
+
+        b.checkBoard(board)
+        checkWinner()
+    }
+}
+
+fun checkWinner(){
+    if(winner == 1){
+        //Player 1 wins "X"
+        message("Player 1 Wins!")
+        currentstage?.scene = menuScene
+    }else if(winner == -1){
+        //Player 2/Computer wins "O"
+        if(players == 1){
+            message("The Computer Wins!")
+        }else{
+            message("Player 2 Wins!")
+        }
+        currentstage?.scene = menuScene
+    }
+    currentTurn = !currentTurn
+}
+
 //this creates a pop up message when called
 fun message(s: String){
     val alert = Alert(AlertType.INFORMATION)
@@ -183,7 +238,10 @@ fun message(s: String){
 //resets the board for a new game
 fun newGame(){
     winner = 0
-    grid.children.removeAll()
+    if(grid.children.size != 0) grid.children.remove(0, boardSize * boardSize)
+    if(grid.children.size > 0){
+        grid.children.remove(0,1)
+    }
     currentTurn = true
     when(tgroup1.selectedToggle){
         groupset1[0] -> boardSize = 3
@@ -280,10 +338,10 @@ class MyForm: Application() {
         vbox1.children.add(hbox5)
 
         val startb2 = Button("1 Player")
-        startb2.setOnAction { e -> primaryStage.scene = gameScene }
+        startb2.setOnAction { e -> primaryStage.scene = gameScene; players = 1; ai.createMap() }
         hbox5.children.add(startb2)
         val startb3 = Button("2 Players")
-        startb3.setOnAction { e -> primaryStage.scene = gameScene }
+        startb3.setOnAction { e -> primaryStage.scene = gameScene; players = 2 }
         hbox5.children.add(startb3)
 
         currentstage = primaryStage
