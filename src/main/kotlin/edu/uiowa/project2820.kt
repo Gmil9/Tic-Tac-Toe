@@ -1,13 +1,8 @@
 package edu.uiowa
-import java.util.*
 
 import javafx.application.Application
 import javafx.application.Application.launch
-import javafx.application.Platform
-import javafx.event.ActionEvent
-import javafx.event.EventHandler
 import javafx.geometry.Insets
-import javafx.scene.Node
 import javafx.scene.Scene
 import javafx.scene.control.*
 import javafx.scene.layout.GridPane
@@ -16,10 +11,6 @@ import javafx.scene.layout.VBox
 import javafx.stage.Stage
 import javafx.scene.control.Alert.AlertType
 import javafx.scene.control.Alert
-import sun.security.krb5.KrbException.errorMessage
-import java.awt.Checkbox
-import java.awt.CheckboxGroup
-import java.awt.SystemColor.text
 
 var mainScene: Scene? = null
 var currentScene: Scene? = null
@@ -41,19 +32,20 @@ interface TheBoard{
     fun createGrid()
 }
 
+//parameters: size is the size of the board, main is if this board object is the main board or a minigame
 class Board(val size: Int, var main:Boolean): TheBoard{
 
     var grid = GridPane()
     var board = arrayOf<Array<Int>>()       //background for tracking winner
-    var buttons = arrayOf<Array<Button>>() //visual representation of buttons
-    var winner = 0
-    var currentTurn = true
+    var buttons = arrayOf<Array<Button>>() //array of buttons put onto the grid
+    var winner = 0                          //can be 1, 0, or -1; 1 means "X" wins, -1 means "O" wins
+    var currentTurn = true                  //switches back and forth in order to switch between placing X and O
     var tempButton: Button? = null
     var tempi = 0
     var tempj = 0
     val ai = AI()
 
-    //2D array, Array of rows each containing an array of columns
+    //2D array, Array of rows each containing an array of columns (background of the game)
     override fun createBoard(){
         if(players == 1){
             ai.createMap()
@@ -68,7 +60,7 @@ class Board(val size: Int, var main:Boolean): TheBoard{
         }
     }
 
-    //creates the representation of the board
+    //creates the representation of the board including the grid and buttons
     override fun createGrid(){
         for(i in 0..size-1){
             var bcols = arrayOf<Button>()
@@ -107,6 +99,7 @@ class Board(val size: Int, var main:Boolean): TheBoard{
         var open_squares: MutableList<Pair<Int, Int>> = mutableListOf()
         var open_squaresList: MutableList<Int> = mutableListOf()
 
+        //creates a list of every possible tile, this is done to pick the correct grid index for the button
         fun createMap(){
             open_squares.clear()
             for(i in 0..size-1){
@@ -116,6 +109,7 @@ class Board(val size: Int, var main:Boolean): TheBoard{
             }
         }
 
+        //creates a list of open tiles based on the current game setting
         fun currentMap(){
             open_squaresList.clear()
             var count = 0
@@ -129,6 +123,7 @@ class Board(val size: Int, var main:Boolean): TheBoard{
             }
         }
 
+        //AI simply picks a random open tile on the board
         fun chooseSquare(){
             val tempRandom = open_squaresList.random()
             val tempPair = open_squares.get(tempRandom)
@@ -136,134 +131,116 @@ class Board(val size: Int, var main:Boolean): TheBoard{
 
             tempNode.text = "O"
             board[tempPair.first][tempPair.second] = -1
-
         }
     }
 }
 
 //this is activated on each button click
-fun takeTurn(boardClass: Board) {
-    if(boardClass.board[boardClass.tempi][boardClass.tempj] != 0){
+fun takeTurn(b: Board) {
+    if(b.board[b.tempi][b.tempj] != 0){
         message("Square already taken, Choose again")
-        boardClass.currentTurn = !boardClass.currentTurn
+        b.currentTurn = !b.currentTurn
     }else{
-        if(boardClass.currentTurn){
-            boardClass.board[boardClass.tempi][boardClass.tempj] = 1
-            boardClass.tempButton?.text = "X"
+        if(b.currentTurn){
+            b.board[b.tempi][b.tempj] = 1
+            b.tempButton?.text = "X"
         }else{
-            boardClass.board[boardClass.tempi][boardClass.tempj] = -1
-            boardClass.tempButton?.text = "O"
+            b.board[b.tempi][b.tempj] = -1
+            b.tempButton?.text = "O"
         }
     }
 
-    if(isUlt){
-        checkBoard(currentBoard)
-        checkminiWinner()
-        checkBoard(mainBoard)
-        checkmainWinner()
-    }else{
-        checkBoard(boardClass)
-        checkmainWinner()
-    }
+    check()
 
-    boardClass.currentTurn = !boardClass.currentTurn
+    b.currentTurn = !b.currentTurn
 
-    if(players == 1 && boardClass.currentTurn == false && boardClass.winner == 0){
-        boardClass.ai.currentMap()
-        if(!boardClass.ai.open_squaresList.isEmpty()){
-            boardClass.ai.chooseSquare()
+    //if the player is playing against an AI, this section of code will run every time the player chooses a tile
+    if(players == 1 && b.currentTurn == false && b.winner == 0){
+        b.ai.currentMap()
+        if(!b.ai.open_squaresList.isEmpty()){
+            b.ai.chooseSquare()
 
-            if(isUlt){
-                checkBoard(currentBoard)
-                checkminiWinner()
-                checkBoard(mainBoard)
-                checkmainWinner()
-            }else{
-                checkBoard(boardClass)
-                checkmainWinner()
-            }
+            check()
 
-            boardClass.currentTurn = !boardClass.currentTurn
+            b.currentTurn = !b.currentTurn
         }
     }
 
 }
 
 //returns 1 if X wins, and -1 if O wins
-fun checkBoard(boardClass: Board) {
+fun checkBoard(b: Board) {
     var count = 0
+    var count2 = 0
 
-    //checks each row
-    for(i in 0..boardClass.size-1){
+    //checks each row and column
+    for(i in 0..b.size-1){
         count = 0
-        for(j in 0..boardClass.size-2){
-            if(boardClass.board[i][j] == boardClass.board[i][j+1] && boardClass.board[i][j] != 0){
+        count2 = 0
+        for(j in 0..b.size-2){
+            if(b.board[i][j] == b.board[i][j+1] && b.board[i][j] != 0){
                 count++
             }
-        }
-        if(count == boardClass.size - 1){
-            boardClass.winner = if(boardClass.currentTurn) 1 else -1
-        }
-    }
-
-    //checks each column
-    for(i in 0..boardClass.size-1){
-        count = 0
-        for(j in 0..boardClass.size-2){
-            if(boardClass.board[j][i] == boardClass.board[j+1][i] && boardClass.board[j][i] != 0){
-                count++
+            if(b.board[j][i] == b.board[j+1][i] && b.board[j][i] != 0){
+                count2++
             }
         }
-        if(count == boardClass.size - 1){
-            boardClass.winner = if(boardClass.currentTurn) 1 else -1
+        if(count == b.size - 1 || count2 == b.size - 1){
+            b.winner = if(b.currentTurn) 1 else -1
         }
     }
 
-    //checks diagonally from top left to bottom right
+    //checks diagonally
     count = 0
-    for(i in 0..boardClass.size-2){
-        if(boardClass.board[i][i] == boardClass.board[i+1][i+1] && boardClass.board[i][i] != 0){
+    count2 = 0
+    for(i in 0..b.size-2){
+        if(b.board[i][i] == b.board[i+1][i+1] && b.board[i][i] != 0){
             count++
         }
-        if(count == boardClass.size - 1){
-            boardClass.winner = if(boardClass.currentTurn) 1 else -1
+        if(b.board[i][b.size-1-i] == b.board[i+1][b.size-2-i] && b.board[i][b.size-1-i] != 0){
+            count2++
+        }
+        if(count == b.size - 1 || count2 == b.size - 1){
+            b.winner = if(b.currentTurn) 1 else -1
         }
     }
-
-    //checks diagonal from top right to bottom left
-    count = 0
-    for(i in 0..boardClass.size-2){
-        if(boardClass.board[i][boardClass.size-1-i] == boardClass.board[i+1][boardClass.size-2-i] && boardClass.board[i][boardClass.size-1-i] != 0){
-            count++
-        }
-        if(count == boardClass.size - 1){
-            boardClass.winner = if(boardClass.currentTurn) 1 else -1
-        }
-    }
-
 
     //checks if board is full with no winner
     count = 0
-    for(i in 0..boardClass.size - 1){
-        for(j in 0..boardClass.size - 1){
-            if(boardClass.board[i][j] != 0 && boardClass.winner == 0){
+    for(i in 0..b.size - 1){
+        for(j in 0..b.size - 1){
+            if(b.board[i][j] != 0 && b.winner == 0){
                 count++
             }
         }
     }
 
-    if(count == boardClass.size * boardClass.size){
-        if(boardClass.main){
+    //if no winner
+    if(count == b.size * b.size){
+        if(b.main){
             message("No Winner")
             currentStage?.scene = menuScene
         }else{
             message("No Winner")
-            boardClass.winner = 0
+            b.winner = 0
             currentStage?.scene = mainScene
         }
     }
 }
 
+fun check(){
+    if(isUlt){
+        checkBoard(currentBoard)
+        checkminiWinner()
+        checkBoard(mainBoard)
+        checkmainWinner()
+    }else{
+        checkBoard(mainBoard)
+        checkmainWinner()
+    }
+}
+
+//checks mini game if there is a winner (for ultimate)
 fun checkminiWinner(){
     if(currentBoard.winner == 1){
         mainBoard.tempButton?.text = "X"
@@ -275,6 +252,8 @@ fun checkminiWinner(){
         currentStage?.scene = mainScene
     }
 }
+
+//checks the main board if there is a winner
 fun checkmainWinner(){
     if(mainBoard.winner == 1){
         message("Player 1 Wins!")
@@ -298,6 +277,7 @@ fun message(s: String){
     alert.showAndWait()
 }
 
+//creates the board(s) based on the starting options
 fun gameController(isMain:Boolean){
     var boardSize = 3
     when(tgroup1.selectedToggle){
@@ -331,10 +311,10 @@ class MyForm: Application() {
     override fun start(primaryStage: Stage) {
 
         val vbox = VBox()
-        vbox.setPrefSize(500.0,250.0)
+        vbox.setPrefSize(500.0,250.0)  //first screen - choose size and ultimate
 
         val vbox1 = VBox()
-        vbox1.setPrefSize(300.0,175.0)
+        vbox1.setPrefSize(300.0,175.0) //second screen - choose player
 
         menuScene = Scene(vbox, 300.0, 250.0)
         var chooseScene = Scene(vbox1, 300.0, 175.0)
