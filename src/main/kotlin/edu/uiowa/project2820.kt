@@ -41,9 +41,9 @@ class Board(val size: Int, var main:Boolean): TheBoard{
 
     //creates the representation of the board including the grid and buttons
     override fun createGrid(){
-        if(players == 1){
-            ai.createMap()
-        }
+//        if(players == 1){
+//            ai.createMap()
+//        }
 
         for(i in 0..size-1){
             for(j in 0..size-1){
@@ -66,26 +66,22 @@ class Board(val size: Int, var main:Boolean): TheBoard{
 
     inner class AI{
 
-        var open_squares: MutableList<Pair<Int, Int>> = mutableListOf()
         var open_squaresList: MutableList<Int> = mutableListOf()
+        var closed_squaresList: MutableList<Int> = mutableListOf()
+        var options = listOf<Int>()
 
-        //creates a list of every possible tile, this is done to pick the correct grid index for the button
-        fun createMap(){
-            open_squares.clear()
-            for(i in 0..size-1){
-                for(j in 0..size-1){
-                    open_squares.add(Pair(i, j))
-                }
-            }
-        }
+        var chooseIndex = -1
 
         //creates a list of open tiles based on the current game setting
         fun currentMap(){
             open_squaresList.clear()
+            closed_squaresList.clear()
             for(i in 0..grid.children.size-1){
                 val tempNode = grid.children.get(i) as Button
                 if(tempNode.text == ""){
                     open_squaresList.add(i)
+                }else{
+                    closed_squaresList.add(i)
                 }
             }
         }
@@ -93,6 +89,47 @@ class Board(val size: Int, var main:Boolean): TheBoard{
         //AI simply picks a random open tile on the board
         fun chooseSquare(){
             val tempRandom = open_squaresList.random()
+            val tempNode = grid.children.get(tempRandom) as Button
+
+            tempNode.text = "O"
+        }
+
+        fun chooseSquareHard(){
+            print(tempIndex)
+            println()
+            if(closed_squaresList.size == 1){
+                when(closed_squaresList.get(0)){
+                    4 -> {options = listOf(0, 2, 6, 8)
+                    pick()}
+                    0, 2, 6, 8  -> {options = listOf(4)
+                        pick()}
+                    1  -> {options = listOf(0, 2, 4, 7)
+                        pick()}
+                    3  -> {options = listOf(0, 4, 5, 6)
+                        pick()}
+                    5  -> {options = listOf(2, 3, 4, 8)
+                        pick()}
+                    7  -> {options = listOf(1, 4, 6, 8)
+                        pick()}
+                }
+            }else if(chooseIndex != -1) {
+                print("Here: 1")
+                println()
+                options = listOf(chooseIndex)
+                pick()
+                chooseIndex = -1
+            }else{
+                print("Here: 2")
+                println()
+                val tempRandom = open_squaresList.random()
+                val tempNode = grid.children.get(tempRandom) as Button
+
+                tempNode.text = "O"
+            }
+        }
+
+        fun pick(){
+            val tempRandom = options.random()
             val tempNode = grid.children.get(tempRandom) as Button
 
             tempNode.text = "O"
@@ -122,7 +159,11 @@ fun takeTurn(b: Board) {
     if(players == 1 && b.currentTurn == false && b.winner == 0){
         b.ai.currentMap()
         if(!b.ai.open_squaresList.isEmpty()){
-            b.ai.chooseSquare()
+            if(b.size == 3){
+                b.ai.chooseSquareHard()
+            }else{
+                b.ai.chooseSquare()
+            }
 
             check()
 
@@ -134,72 +175,152 @@ fun takeTurn(b: Board) {
 
 //returns 1 if X wins, and -1 if O wins
 fun checkBoard(b: Board) {
-    var count = 0
+    var code = ""
 
     //checks each row
     for (i in 0..b.size - 1) {
-        count = 0
-        for (j in 0..b.size - 2) {
+        code = ""
+        for (j in 0..b.size - 1) {
             val tempNode = b.grid.children.get((j * b.size) + i) as Button
-            val tempNode2 = b.grid.children.get(((j + 1) * b.size) + i) as Button
-            if (tempNode.text == tempNode2.text && tempNode.text != "") {
-                count++
+
+            if (tempNode.text == "X") {
+                code += "1"
+            } else if (tempNode.text == "O") {
+                code += "0"
+            } else {
+                code += "x"
             }
-            if (count == b.size - 1) {
+
+            if (code == "1".repeat(b.size) || code == "0".repeat(b.size)) {
                 b.winner = if (b.currentTurn) 1 else -1
+            }
+
+            if (b.size == 3) {
+                if (code == "11x") {
+                    print("CodeRow(11x): " + code)
+                    println()
+                    b.ai.chooseIndex = i + 6
+                } else if (code == "x11") {
+                    print("CodeRow(x11): " + code)
+                    println()
+                    b.ai.chooseIndex = i
+                } else if (code == "1x1") {
+                    print("CodeRow(1x1): " + code)
+                    println()
+                    b.ai.chooseIndex = i + 3
+                }
             }
         }
     }
 
-    count = 0
+    code = ""
     //checks each column
-    for (i in 0..b.grid.children.size - 2) {
+    for (i in 0..b.grid.children.size - 1) {
         val tempNode = b.grid.children.get(i) as Button
-        val tempNode2 = b.grid.children.get(i + 1) as Button
+
+        if (tempNode.text == "X") {
+            code += "1"
+        }else if(tempNode.text == "O"){
+            code += "0"
+        }else{
+            code += "x"
+        }
+
+        if (code == "1".repeat(b.size) || code == "0".repeat(b.size)) {
+            b.winner = if (b.currentTurn) 1 else -1
+        }
+
+        if(b.size == 3) {
+            if (code == "11x") {
+                print("CodeCol(11x): " + code)
+                println()
+                b.ai.chooseIndex = i  // 2, 5, or 8
+            } else if (code == "x11") {
+                print("CodeCol(x11): " + code)
+                println()
+                b.ai.chooseIndex = i - 2 // 0, 3, or 6
+            } else if (code == "1x1") {
+                print("CodeCol(1x1): " + code)
+                println()
+                b.ai.chooseIndex = i - 1 // 1, 4, or 7
+            }
+        }
         if ((i+1) % b.size == 0) {
-            count = 0
-        } else {
-            if (tempNode.text == tempNode2.text && tempNode.text != "") {
-                count++
-            }
-            if (count == b.size - 1) {
-                print("winner")
-                b.winner = if (b.currentTurn) 1 else -1
-            }
+            code = ""
         }
     }
 
     //checks diagonally bottom left to top right
-    count = 0
-    for (i in 1..b.size - 1) {
+    code = ""
+    for (i in 1..b.size) {
         val tempNode = b.grid.children.get((b.size - 1) * i) as Button
-        val tempNode2 = b.grid.children.get((b.size - 1) * (i + 1)) as Button
-        if (tempNode.text == tempNode2.text && tempNode.text != "") {
-            count++
+
+        if (tempNode.text == "X") {
+            code += "1"
+        }else if(tempNode.text == "O"){
+            code += "0"
+        }else{
+            code += "x"
         }
-        if (count == b.size - 1) {
-            print("winner")
+
+        if (code == "1".repeat(b.size) || code == "0".repeat(b.size)) {
             b.winner = if (b.currentTurn) 1 else -1
+        }
+
+        if(b.size == 3) {
+            if (code == "11x") {
+                print("CodeBLtoTR(11x): " + code)
+                println()
+                b.ai.chooseIndex = 6
+            } else if (code == "x11") {
+                print("CodeBLtoTR(x11): " + code)
+                println()
+                b.ai.chooseIndex = 2
+            } else if (code == "1x1") {
+                print("CodeBLtoTR(1x1): " + code)
+                println()
+                b.ai.chooseIndex = 4
+            }
         }
     }
 
     //checks diagonally top left to bottom right
-    count = 0
-    for (i in 0..b.size - 2) {
+    code = ""
+    for (i in 0..b.size - 1) {
         val tempNode = b.grid.children.get((b.size + 1) * i) as Button
-        val tempNode2 = b.grid.children.get((b.size + 1) * (i + 1)) as Button
-        if (tempNode.text == tempNode2.text && tempNode.text != "") {
-            count++
+
+        if (tempNode.text == "X") {
+            code += "1"
+        } else if (tempNode.text == "O") {
+            code += "0"
+        } else {
+            code += "x"
         }
-        if (count == b.size - 1) {
-            print("winner")
+
+        if (code == "1".repeat(b.size) || code == "0".repeat(b.size)) {
             b.winner = if (b.currentTurn) 1 else -1
+        }
+
+        if (b.size == 3) {
+            if (code == "11x") {
+                print("CodeTLtoBR(11x): " + code)
+                println()
+                b.ai.chooseIndex = 4
+            } else if (code == "x11") {
+                print("CodeTLtoBR(x11): " + code)
+                println()
+                b.ai.chooseIndex = 0
+            } else if (code == "1x1") {
+                print("CodeTLtoBR(1x1): " + code)
+                println()
+                b.ai.chooseIndex = 8
+            }
         }
     }
 
     //checks if board is full with no winner
-    count = 0
-    for (i in 0..b.size - 1) {
+    var count = 0
+    for (i in 0..b.grid.children.size - 1) {
         val tempNode = b.grid.children.get(i) as Button
         if (tempNode.text != "" && b.winner == 0) {
             count++
