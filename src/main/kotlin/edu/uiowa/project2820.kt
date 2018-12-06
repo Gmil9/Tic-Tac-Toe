@@ -12,39 +12,60 @@ import javafx.stage.Stage
 import javafx.scene.control.Alert.AlertType
 import javafx.scene.control.Alert
 
+var menuScene: Scene? = null
 var mainScene: Scene? = null
 var currentScene: Scene? = null
 var currentStage: Stage? = null
-var menuScene: Scene? = null
 
 val groupset1: Array<ToggleButton?> = arrayOfNulls(4) // for toggle buttons
 val tgroup1 = ToggleGroup()
 
-var mainBoard = Board(3,false)
+var mainBoard = Board(3,false)    //main board
 var currentBoard = Board(3,false) //mini game when playing ultimate
 
+/**
+ * These 3 change depending on the options chosen:
+ *      How many players?
+ *      If its ultimate or not
+ *      If its played on easy or hard
+ */
 var players = 1
 var isUlt = false
+var difficulty = false
 
+//interface for the board class
 interface TheBoard{
     fun createGrid()
 }
 
-//parameters: size is the size of the board, main is if this board object is the main board or a minigame
+/**
+ * Parameters:
+ *      Size: size of the board
+ *      Main: if this board object is the main board or a minigame
+ * A new board is created every time a game is started and/or a mini game is started
+ */
 class Board(val size: Int, var main:Boolean): TheBoard{
 
+    /**
+     * winner:
+     *      0 = no winner
+     *      1 = X wins
+     *      -1 = O wins
+     * currentTurn: switches back and forth between turns
+     * tempIndex: hard AI uses this to choose a specific grid index
+     * ai: a new AI is created every time a new board is made, each AI is paired with a given board
+     *
+     * createGrid(): creates the representation of the board including the grid and buttons
+     * class AI(): nested AI class in board since the AI depends on the board
+     */
+
     var grid = GridPane()
-    var winner = 0                          //can be 1, 0, or -1; 1 means "X" wins, -1 means "O" wins
-    var currentTurn = true                  //switches back and forth in order to switch between placing X and O
+    var winner = 0
+    var currentTurn = true
     var tempIndex = 0
     val ai = AI()
 
-    //creates the representation of the board including the grid and buttons
     override fun createGrid(){
-//        if(players == 1){
-//            ai.createMap()
-//        }
-
         for(i in 0..size-1){
             for(j in 0..size-1){
                 val b = Button("")
@@ -59,12 +80,18 @@ class Board(val size: Int, var main:Boolean): TheBoard{
                 }else if(!isUlt && main){
                     b.setOnAction { e -> tempIndex = size * i + j; takeTurn(mainBoard)}
                 }
-
             }
         }
     }
 
     inner class AI{
+
+        /**
+         * currentMap(): creates a list of open tiles based on the current game setting
+         * chooseSquare(): AI simply picks a random open tile on the board
+         * chooseSquareHard(): smarter AI that chooses squares depending on what the player chooses
+         * pick(): used to pick a tile
+         */
 
         var open_squaresList: MutableList<Int> = mutableListOf()
         var closed_squaresList: MutableList<Int> = mutableListOf()
@@ -72,7 +99,6 @@ class Board(val size: Int, var main:Boolean): TheBoard{
 
         var chooseIndex = -1
 
-        //creates a list of open tiles based on the current game setting
         fun currentMap(){
             open_squaresList.clear()
             closed_squaresList.clear()
@@ -86,7 +112,6 @@ class Board(val size: Int, var main:Boolean): TheBoard{
             }
         }
 
-        //AI simply picks a random open tile on the board
         fun chooseSquare(){
             val tempRandom = open_squaresList.random()
             val tempNode = grid.children.get(tempRandom) as Button
@@ -95,8 +120,6 @@ class Board(val size: Int, var main:Boolean): TheBoard{
         }
 
         fun chooseSquareHard(){
-            print(tempIndex)
-            println()
             if(closed_squaresList.size == 1){
                 when(closed_squaresList.get(0)){
                     4 -> {options = listOf(0, 2, 6, 8)
@@ -113,14 +136,10 @@ class Board(val size: Int, var main:Boolean): TheBoard{
                         pick()}
                 }
             }else if(chooseIndex != -1) {
-                print("Here: 1")
-                println()
                 options = listOf(chooseIndex)
                 pick()
                 chooseIndex = -1
             }else{
-                print("Here: 2")
-                println()
                 val tempRandom = open_squaresList.random()
                 val tempNode = grid.children.get(tempRandom) as Button
 
@@ -137,7 +156,7 @@ class Board(val size: Int, var main:Boolean): TheBoard{
     }
 }
 
-//this is activated on each button click
+//Activated on each button click
 fun takeTurn(b: Board) {
     val tempNode = b.grid.children.get(b.tempIndex) as Button
     if(tempNode.text != ""){
@@ -155,11 +174,15 @@ fun takeTurn(b: Board) {
 
     b.currentTurn = !b.currentTurn
 
-    //if the player is playing against an AI, this section of code will run every time the player chooses a tile
+    /**
+     * if the player is playing against an AI, this section of code will run every time the player chooses a tile
+     * Also chooses based on the difficulty chosen
+     * The Hard AI is designed for the traditional 3x3 board, so it can only be plaed on it
+     */
     if(players == 1 && b.currentTurn == false && b.winner == 0){
         b.ai.currentMap()
         if(!b.ai.open_squaresList.isEmpty()){
-            if(b.size == 3){
+            if(b.size == 3 && difficulty == true){
                 b.ai.chooseSquareHard()
             }else{
                 b.ai.chooseSquare()
@@ -170,10 +193,18 @@ fun takeTurn(b: Board) {
             b.currentTurn = !b.currentTurn
         }
     }
-
 }
 
-//returns 1 if X wins, and -1 if O wins
+/**
+ * Checks for a winner in each direction:
+ *      each row
+ *      each column
+ *      each diagonal
+ *
+ * Each loop reads in the board and creates a code
+ *      the code reads if there is a winner,
+ *      if not it tells the AI where to place its move
+ */
 fun checkBoard(b: Board) {
     var code = ""
 
@@ -197,16 +228,10 @@ fun checkBoard(b: Board) {
 
             if (b.size == 3) {
                 if (code == "11x") {
-                    print("CodeRow(11x): " + code)
-                    println()
                     b.ai.chooseIndex = i + 6
                 } else if (code == "x11") {
-                    print("CodeRow(x11): " + code)
-                    println()
                     b.ai.chooseIndex = i
                 } else if (code == "1x1") {
-                    print("CodeRow(1x1): " + code)
-                    println()
                     b.ai.chooseIndex = i + 3
                 }
             }
@@ -232,16 +257,10 @@ fun checkBoard(b: Board) {
 
         if(b.size == 3) {
             if (code == "11x") {
-                print("CodeCol(11x): " + code)
-                println()
                 b.ai.chooseIndex = i  // 2, 5, or 8
             } else if (code == "x11") {
-                print("CodeCol(x11): " + code)
-                println()
                 b.ai.chooseIndex = i - 2 // 0, 3, or 6
             } else if (code == "1x1") {
-                print("CodeCol(1x1): " + code)
-                println()
                 b.ai.chooseIndex = i - 1 // 1, 4, or 7
             }
         }
@@ -269,16 +288,10 @@ fun checkBoard(b: Board) {
 
         if(b.size == 3) {
             if (code == "11x") {
-                print("CodeBLtoTR(11x): " + code)
-                println()
                 b.ai.chooseIndex = 6
             } else if (code == "x11") {
-                print("CodeBLtoTR(x11): " + code)
-                println()
                 b.ai.chooseIndex = 2
             } else if (code == "1x1") {
-                print("CodeBLtoTR(1x1): " + code)
-                println()
                 b.ai.chooseIndex = 4
             }
         }
@@ -303,16 +316,10 @@ fun checkBoard(b: Board) {
 
         if (b.size == 3) {
             if (code == "11x") {
-                print("CodeTLtoBR(11x): " + code)
-                println()
                 b.ai.chooseIndex = 4
             } else if (code == "x11") {
-                print("CodeTLtoBR(x11): " + code)
-                println()
                 b.ai.chooseIndex = 0
             } else if (code == "1x1") {
-                print("CodeTLtoBR(1x1): " + code)
-                println()
                 b.ai.chooseIndex = 8
             }
         }
@@ -423,10 +430,10 @@ class MyForm: Application() {
         vbox.setPrefSize(500.0,250.0)  //first screen - choose size and ultimate
 
         val vbox1 = VBox()
-        vbox1.setPrefSize(300.0,175.0) //second screen - choose player
+        vbox1.setPrefSize(425.0,175.0) //second screen - choose player
 
         menuScene = Scene(vbox, 300.0, 250.0)
-        var chooseScene = Scene(vbox1, 300.0, 175.0)
+        var chooseScene = Scene(vbox1, 425.0, 175.0)
 
         val hbox1 = HBox()
         hbox1.setPadding(Insets(20.0, 20.0, 15.0, 65.0));
@@ -490,7 +497,7 @@ class MyForm: Application() {
         hbox3c.children.add(cb)
 
         val hbox4 = HBox()
-        hbox4.setPadding(Insets(15.0, 20.0, 15.0, 40.0));
+        hbox4.setPadding(Insets(15.0, 20.0, 15.0, 100.0));
         hbox4.setSpacing(15.0);
         vbox1.children.add(hbox4)
 
@@ -499,13 +506,16 @@ class MyForm: Application() {
         hbox4.children.add(labelPlayers)
 
         val hbox5 = HBox()
-        hbox5.setPadding(Insets(20.0, 30.0, 15.0, 70.0));
+        hbox5.setPadding(Insets(20.0, 30.0, 15.0, 60.0));
         hbox5.setSpacing(15.0);
         vbox1.children.add(hbox5)
 
-        val startb2 = Button("1 Player")
-        startb2.setOnAction { e -> gameController(true); players = 1}
+        val startb2 = Button("1 Player (Easy)")
+        startb2.setOnAction { e -> gameController(true); players = 1; difficulty = false}
         hbox5.children.add(startb2)
+        val startb2b = Button("1 Player (Hard)")
+        startb2b.setOnAction { e -> gameController(true); players = 1; difficulty = true}
+        hbox5.children.add(startb2b)
         val startb3 = Button("2 Players")
         startb3.setOnAction { e -> gameController(true); players = 2}
         hbox5.children.add(startb3)
@@ -518,6 +528,9 @@ class MyForm: Application() {
         val back = Button("Back")
         back.setOnAction { e -> primaryStage.scene = menuScene}
         hbox6.children.add(back)
+
+        val labelHard = Label("Hard Only works if playing on a 3x3 board")
+        hbox6.children.add(labelHard)
 
         currentStage = primaryStage
         primaryStage.scene = menuScene
