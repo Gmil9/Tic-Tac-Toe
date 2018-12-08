@@ -12,7 +12,7 @@ import javafx.stage.Stage
 import javafx.scene.control.Alert.AlertType
 import javafx.scene.control.Alert
 
-var menuScene: Scene? = null
+var menuScene1: Scene? = null
 var mainScene: Scene? = null
 var currentScene: Scene? = null
 var currentStage: Stage? = null
@@ -338,7 +338,7 @@ fun checkBoard(b: Board) {
     if (count == b.size * b.size) {
         if (b.main) {
             message("No Winner")
-            currentStage?.scene = menuScene
+            currentStage?.scene = menuScene1
         } else {
             message("No Winner")
             b.winner = 0
@@ -375,14 +375,14 @@ fun checkminiWinner(){
 fun checkmainWinner(){
     if(mainBoard.winner == 1){
         message("Player 1 Wins!")
-        currentStage?.scene = menuScene
+        currentStage?.scene = menuScene1
     }else if(mainBoard.winner == -1){
         if(players == 1){
             message("The Computer Wins!")
         }else{
             message("Player 2 Wins!")
         }
-        currentStage?.scene = menuScene
+        currentStage?.scene = menuScene1
     }
 }
 
@@ -432,108 +432,108 @@ class MyForm: Application() {
         val vbox1 = VBox()
         vbox1.setPrefSize(425.0,175.0) //second screen - choose player
 
-        menuScene = Scene(vbox, 300.0, 250.0)
-        var chooseScene = Scene(vbox1, 425.0, 175.0)
+        menuScene1 = Scene(vbox, 300.0, 250.0)
+        var menuScene2 = Scene(vbox1, 425.0, 175.0)
 
-        val hbox1 = HBox()
-        hbox1.setPadding(Insets(20.0, 20.0, 15.0, 65.0));
-        hbox1.setSpacing(15.0);
-        vbox.children.add(hbox1)
+        val menu1hbox1 = HBox()
+        menu1hbox1.setPadding(Insets(20.0, 20.0, 15.0, 65.0));
+        menu1hbox1.setSpacing(15.0);
+        vbox.children.add(menu1hbox1)
 
-        val header = Label("Tic Tac Toe")
-        header.style = "-fx-font-size: 30px"
-        hbox1.children.add(header)
+        val title = Label("Tic Tac Toe")
+        title.style = "-fx-font-size: 30px"
+        menu1hbox1.children.add(title)
 
-        val hbox2 = HBox()
-        hbox2.setPadding(Insets(15.0, 12.0, 15.0, 58.0));
-        hbox2.setSpacing(15.0);
-        vbox.children.add(hbox2)
+        val menu1hbox2 = HBox()
+        menu1hbox2.setPadding(Insets(15.0, 12.0, 15.0, 58.0));
+        menu1hbox2.setSpacing(15.0);
+        vbox.children.add(menu1hbox2)
 
         val cb = CheckBox()
-        val startb = Button("Start Game")
-        startb.setOnAction { e -> primaryStage.scene = chooseScene; isUlt = cb.isSelected}
-        hbox2.children.add(startb)
+        val startB = Button("Start Game")
+        startB.setOnAction { e -> primaryStage.scene = menuScene2; isUlt = cb.isSelected}
+        menu1hbox2.children.add(startB)
 
-        val exitb = Button("Exit Game")
-        exitb.setOnAction { e -> primaryStage.close()}
-        hbox2.children.add(exitb)
+        val exitB = Button("Exit Game")
+        exitB.setOnAction { e -> primaryStage.close()}
+        menu1hbox2.children.add(exitB)
 
-        val hbox3 = HBox()
-        hbox3.setPadding(Insets(5.0, 12.0, 5.0, 30.0));
-        hbox3.setSpacing(15.0);
-        vbox.children.add(hbox3)
+        val menu1hbox3 = HBox()
+        menu1hbox3.setPadding(Insets(5.0, 12.0, 5.0, 30.0));
+        menu1hbox3.setSpacing(15.0);
+        vbox.children.add(menu1hbox3)
 
-        val labelSize = Label("Choose board size between 3 and 6: ")
-        hbox3.children.add(labelSize)
+        val labelBoardSize = Label("Choose board size between 3 and 6: ")
+        menu1hbox3.children.add(labelBoardSize)
 
-        val hbox3b = HBox()
-        hbox3b.setPadding(Insets(5.0, 20.0, 15.0, 70.0));
-        hbox3b.setSpacing(15.0);
-        vbox.children.add(hbox3b)
+        val menu1hbox3b = HBox()
+        menu1hbox3b.setPadding(Insets(5.0, 20.0, 15.0, 70.0));
+        menu1hbox3b.setSpacing(15.0);
+        vbox.children.add(menu1hbox3b)
 
-        val r1 = ToggleButton("3")
-        r1.toggleGroup = tgroup1
-        hbox3b.children.add(r1)
-        groupset1[0] = r1
-        val r2 = ToggleButton("4")
-        r2.toggleGroup = tgroup1
-        hbox3b.children.add(r2)
-        groupset1[1] = r2
-        val r3 = ToggleButton("5")
-        r3.toggleGroup = tgroup1
-        hbox3b.children.add(r3)
-        groupset1[2] = r3
-        val r4 = ToggleButton("6")
-        r4.toggleGroup = tgroup1
-        hbox3b.children.add(r4)
-        groupset1[3] = r4
+        val t1 = ToggleButton("3")
+        t1.toggleGroup = tgroup1
+        menu1hbox3b.children.add(t1)
+        groupset1[0] = t1
+        val t2 = ToggleButton("4")
+        t2.toggleGroup = tgroup1
+        menu1hbox3b.children.add(t2)
+        groupset1[1] = t2
+        val t3 = ToggleButton("5")
+        t3.toggleGroup = tgroup1
+        menu1hbox3b.children.add(t3)
+        groupset1[2] = t3
+        val t4 = ToggleButton("6")
+        t4.toggleGroup = tgroup1
+        menu1hbox3b.children.add(t4)
+        groupset1[3] = t4
 
-        val hbox3c = HBox()
-        hbox3c.setPadding(Insets(5.0, 15.0, 15.0, 110.0));
-        hbox3c.setSpacing(15.0);
-        vbox.children.add(hbox3c)
+        val menu1hbox3c = HBox()
+        menu1hbox3c.setPadding(Insets(5.0, 15.0, 15.0, 110.0));
+        menu1hbox3c.setSpacing(15.0);
+        vbox.children.add(menu1hbox3c)
 
         cb.text = "Ultimate?"
-        hbox3c.children.add(cb)
+        menu1hbox3c.children.add(cb)
 
-        val hbox4 = HBox()
-        hbox4.setPadding(Insets(15.0, 20.0, 15.0, 100.0));
-        hbox4.setSpacing(15.0);
-        vbox1.children.add(hbox4)
+        val menu2hbox1 = HBox()
+        menu2hbox1.setPadding(Insets(15.0, 20.0, 15.0, 100.0));
+        menu2hbox1.setSpacing(15.0);
+        vbox1.children.add(menu2hbox1)
 
         val labelPlayers = Label("How many players?")
         labelPlayers.style = "-fx-font-size: 24px"
-        hbox4.children.add(labelPlayers)
+        menu2hbox1.children.add(labelPlayers)
 
-        val hbox5 = HBox()
-        hbox5.setPadding(Insets(20.0, 30.0, 15.0, 60.0));
-        hbox5.setSpacing(15.0);
-        vbox1.children.add(hbox5)
+        val menu2hbox2 = HBox()
+        menu2hbox2.setPadding(Insets(20.0, 30.0, 15.0, 60.0));
+        menu2hbox2.setSpacing(15.0);
+        vbox1.children.add(menu2hbox2)
 
-        val startb2 = Button("1 Player (Easy)")
-        startb2.setOnAction { e -> gameController(true); players = 1; difficulty = false}
-        hbox5.children.add(startb2)
-        val startb2b = Button("1 Player (Hard)")
-        startb2b.setOnAction { e -> gameController(true); players = 1; difficulty = true}
-        hbox5.children.add(startb2b)
-        val startb3 = Button("2 Players")
-        startb3.setOnAction { e -> gameController(true); players = 2}
-        hbox5.children.add(startb3)
+        val easyButton = Button("1 Player (Easy)")
+        easyButton.setOnAction { e -> gameController(true); players = 1; difficulty = false}
+        menu2hbox2.children.add(easyButton)
+        val hardButton = Button("1 Player (Hard)")
+        hardButton.setOnAction { e -> gameController(true); players = 1; difficulty = true}
+        menu2hbox2.children.add(hardButton)
+        val playerButton_2 = Button("2 Players")
+        playerButton_2.setOnAction { e -> gameController(true); players = 2}
+        menu2hbox2.children.add(playerButton_2)
 
-        val hbox6 = HBox()
-        hbox6.setPadding(Insets(10.0, 30.0, 10.0, 65.0));
-        hbox6.setSpacing(15.0);
-        vbox1.children.add(hbox6)
+        val menu2hbox3 = HBox()
+        menu2hbox3.setPadding(Insets(10.0, 30.0, 10.0, 65.0));
+        menu2hbox3.setSpacing(15.0);
+        vbox1.children.add(menu2hbox3)
 
-        val back = Button("Back")
-        back.setOnAction { e -> primaryStage.scene = menuScene}
-        hbox6.children.add(back)
+        val backButton = Button("Back")
+        backButton.setOnAction { e -> primaryStage.scene = menuScene1}
+        menu2hbox3.children.add(backButton)
 
-        val labelHard = Label("Hard Only works if playing on a 3x3 board")
-        hbox6.children.add(labelHard)
+        val labelHardMode = Label("Hard Only works if playing on a 3x3 board")
+        menu2hbox3.children.add(labelHardMode)
 
         currentStage = primaryStage
-        primaryStage.scene = menuScene
+        primaryStage.scene = menuScene1
         primaryStage.show()
     }
 }
